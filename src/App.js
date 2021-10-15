@@ -1,96 +1,81 @@
-import { Component } from "react";
+import { useState, useEffect } from 'react';
 
-import "./App.css";
+import './App.css';
 
-import Searchbar from "./components/Searchbar";
-import ImageGallery from "./components/ImageGallery";
-import Button from "./components/Button";
-import Loader from "./components/Loader";
-import Modal from "./components/Modal";
-import api from "./services/pixabayAPI";
+import Searchbar from './components/Searchbar';
+import ImageGallery from './components/ImageGallery';
+import Button from './components/Button';
+import Loader from './components/Loader';
+import Modal from './components/Modal';
+import api from './services/pixabayAPI';
 
-class App extends Component {
-  state = {
-    searchImg: "",
-    img: [],
-    loading: false,
-    currentPage: null,
-    modalImg: "",
-    isModalOpen: false,
-  };
+function App() {
+  const [searchImg, setSearchImg] = useState('');
+  const [img, setImg] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [currentPage, setCurrentPage] = useState(null);
+  const [modalImg, setModalImg] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  componentDidUpdate(prevProps, prevState) {
-    if (
-      prevState.currentPage !== this.state.currentPage ||
-      !this.state.img.length
-    ) {
-      api(this.state.searchImg, this.state.currentPage)
-        .then((img) => {
-          this.setState((prevState) => {
-            return { img: [...prevState.img, ...img.hits] };
-          });
-          if (this.state.currentPage !== 1) {
+  useEffect(() => {
+    if (searchImg && currentPage) {
+      api(searchImg, currentPage)
+        .then(img => {
+          setImg(prevImgArr => [...prevImgArr, ...img.hits]);
+
+          if (currentPage !== 1) {
             window.scrollTo({
               top: document.documentElement.scrollHeight,
-              behavior: "smooth",
+              behavior: 'smooth',
             });
           }
         })
-        .catch((error) => this.setState({ error }))
-        .finally(() => this.setState({ loading: false }));
+        .catch(error => console.log({ error }))
+        .finally(() => setLoading(false));
     }
-  }
+  }, [currentPage, searchImg]);
 
-  handleSubmit = (event) => {
+  const handleSubmit = event => {
     event.preventDefault();
     const { value } = event.target[1];
 
-    if (value.trim() === "") {
-      alert("Введите искомую картинку.");
+    if (value.trim() === '') {
+      alert('Введите искомую картинку.');
       return;
     }
 
-    this.setState({
-      searchImg: value.toLowerCase(),
-      loading: true,
-      currentPage: 1,
-      img: [],
-    });
+    setSearchImg(value.toLowerCase());
+    setLoading(true);
+    setCurrentPage(1);
+    setImg([]);
   };
 
-  handleLoadeMore = () => {
-    this.setState(({ currentPage }) => ({
-      currentPage: currentPage + 1,
-      loading: true,
-    }));
+  const handleLoadeMore = () => {
+    setLoading(true);
+    setCurrentPage(prevPage => prevPage + 1);
   };
 
-  hendelOpenModal = (e) => {
-    this.setState({
-      isModalOpen: true,
-      modalImg: e.target.dataset.source,
-    });
+  const hendelOpenModal = e => {
+    setIsModalOpen(true);
+    setModalImg(e.target.dataset.source);
   };
 
-  hendelCloseModal = () => {
-    this.setState({ isModalOpen: false, modalImg: "" });
+  const hendelCloseModal = () => {
+    setIsModalOpen(false);
+    setModalImg('');
   };
 
-  render() {
-    const { img, loading, currentPage, isModalOpen, modalImg } = this.state;
-    return (
-      <>
-        <Searchbar onSubmit={this.handleSubmit} />
-
-        {img && <ImageGallery imgArr={img} onOpen={this.hendelOpenModal} />}
-        {isModalOpen && (
-          <Modal modalImg={modalImg} modalClose={this.hendelCloseModal} />
-        )}
-        {loading && <Loader />}
-        {currentPage && <Button onClick={this.handleLoadeMore} />}
-      </>
-    );
-  }
+  return (
+    <>
+      <Searchbar onSubmit={handleSubmit} />
+      {img && <ImageGallery imgArr={img} onOpen={hendelOpenModal} />}
+      {isModalOpen && (
+        <Modal modalImg={modalImg} modalClose={hendelCloseModal} />
+      )}
+      {loading && <Loader />}
+      {currentPage && <Button onClick={handleLoadeMore} />}
+    </>
+  );
 }
 
 export default App;

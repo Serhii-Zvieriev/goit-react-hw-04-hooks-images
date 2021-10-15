@@ -3,14 +3,6 @@ import { useEffect } from "react";
 import style from "./Modal.module.css";
 
 function Modal({ modalImg, modalClose }) {
-  // componentDidMount() {
-  //   window.addEventListener("keydown", this.closeModalByESC);
-  // }
-
-  // componentWillUnmount() {
-  //   window.removeEventListener("keydown", this.closeModalByESC);
-  // }
-
   useEffect(() => {
     window.addEventListener("keydown", closeModalByESC);
 
@@ -24,7 +16,6 @@ function Modal({ modalImg, modalClose }) {
       return;
     }
     modalClose();
-    console.log("1");
   };
 
   return (
